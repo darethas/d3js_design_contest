@@ -11,6 +11,7 @@
 			// or you can write it in a .js file, and reference it
 			// just make sure it comes after 
 		d3.csv('data/a1-cars.csv', function(data) {
+				d3.select('body').append('h1').text('Bar Chart on displacement of different vehicles.');
 				var canvas = d3.select('body').append('svg')
 					.attr('width', 500)
 					.attr('height', 2500);
