@@ -25,3 +25,5 @@ go to localhost:3000/data/a1-cars.csv
 
 * Need to decide which one we are going to work with.
 * data from csv to json using node-csv to be used with d3
+
+If you want to try something experimental, make a branch please :)
