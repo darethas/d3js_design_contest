@@ -21,8 +21,10 @@ server will be running on localhost:3000
 CSV files are in data/, to see it in the browser, for example
 go to localhost:3000/data/a1-cars.csv
 
+Open index.html to view our work
+
 ### todo:
 
-* Need to decide which one we are going to work with.
-
-If you want to try something experimental, make a branch please :)
+* Make multiple, small graphs (working on it - Grace)
+* Make a Parallel Coordinates Visualization
+* Reach Goal: Leap Interaction
