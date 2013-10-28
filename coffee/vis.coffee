@@ -1,19 +1,204 @@
+#Turn an array into a dictionary
+# key = The key by which to index the dictionary
+Array::toDict = (key) ->
+  dict = {}
+  dict[obj[key]] = obj for obj in this when obj[key]?
+  dict
 
+class ParallelCoords
+  constructor: (data) ->
+    @data = data
+    @parWidth = 1000
+    @parHeight = 300
+    @width = 300
+    @height = 300
+    @nodes = []
+    @nodeDict = null
+#    @links = []
+    @lines = []
+    @columns = 10
+    @axis = d3.svg.axis().orient("left")
+    @scales = {
+      "Calories" : d3.scale.linear().domain([50,160]).range([@parHeight-30,30]),
+      "Protein" : d3.scale.linear().domain([0,6]).range([30,@parHeight-30]),
+      "Fat" : d3.scale.linear().domain([0,5]).range([30,@parHeight-30]),
+      "Sodium" : d3.scale.linear().domain([0,325]).range([30,@parHeight-30]),
+      "Fiber" : d3.scale.linear().domain([0,15]).range([30,@parHeight-30]),
+      "Carbohydrates" : d3.scale.linear().domain([0,24]).range([30,@parHeight-30]),
+      "Sugars" : d3.scale.linear().domain([0,15]).range([30,@parHeight-30]),
+      "Potassium" : d3.scale.linear().domain([0,330]).range([30,@parHeight-30]),
+      "Vitamins" : d3.scale.linear().domain([0,100]).range([30,@parHeight-30]),
+      "Manufacturer" : d3.scale.ordinal().domain(["A", "G", "N", "P", "K", "Q", "R"]).rangePoints([30, @parHeight - 30])
+    }
+    @color = d3.scale.ordinal()
+      .domain(["A", "G", "N", "P", "K", "Q", "R"])
+      .range(colorbrewer.Paired[7])
+    @force = d3.layout.force()
+      .charge(-120)
+      .linkDistance(30)
+      .friction(0.8)
+      .size([@width, @height])
+    @line = d3.svg.line().x((d) -> d.x).y((d) -> d.y)
+    max_amount = d3.max(@data, (d) -> parseInt(d.Calories))
+    @radius_scale = d3.scale.pow().exponent(4).domain([0, max_amount]).range([10, 85])
+
+    this.create_nodes()
+#    parallel_dict = @nodes.toDict('name')
+    this.create_vis()
+
+  getScale: (name, d) =>
+    scale = @scales[String(name)]
+    if(typeof(d) == "undefined") then console.log name
+    if(typeof(d) == "string") then scale(d) else scale(Math.abs(d))
+
+  create_nodes: () =>
+    @data.forEach (d) =>
+        node = {
+          id: d.id
+          radius: @radius_scale(parseInt(d.Calories))
+          value: d.Calories
+          name: d.Cereal
+          manufacturer: d.Manufacturer
+          type: d.Type
+          protein: d.Protein
+          fat: d.Fat
+          sodium: d.Sodium
+          fiber: d.Fiber
+          carbs: d.Carbohydrates
+          sugars: d.Sugars
+          shelf: d.Shelf
+          potassium: d.Potassium
+          vitamins: d.Vitamins
+          weight: d.Weight
+          cups: d.Cups
+          x: Math.random() * 1000
+          y: Math.random() * 800
+          color: @color(d.Manufacturer)
+        }
+        @nodes.push node
+
+    @nodes.sort (a,b) -> b.value - a.value
+#    @data.links.forEach (d) =>
+#      link = {
+#        source: d.source
+#        target: d.target
+#        value: d.value
+#      }
+#      @links.push link
+
+  show_details: (data, i, element) =>
+
+    content = "<span class=\"name\">Cereal:</span><span class=\"value\"> #{data.name}</span><br/>"
+    content +="<span class=\"name\">Calories:</span><span class=\"value\"> #{addCommas(data.value)}</span><br/>"
+    content +="<span class=\"name\">Manufacturer:</span><span class=\"value\"> #{data.manufacturer}</span><br/>"
+    content +="<span class=\"name\">Type:</span><span class=\"value\"> #{data.type}</span><br/>"
+    content +="<span class=\"name\">Protein:</span><span class=\"value\"> #{Math.abs(data.protein)}</span><br/>"
+    content +="<span class=\"name\">Fat:</span><span class=\"value\"> #{Math.abs(data.fat)}</span><br/>"
+    content +="<span class=\"name\">Sodium:</span><span class=\"value\"> #{Math.abs(data.sodium)}</span><br/>"
+    content +="<span class=\"name\">Fiber:</span><span class=\"value\"> #{Math.abs(data.fiber)}</span><br/>"
+    content +="<span class=\"name\">Carbohydrates:</span><span class=\"value\"> #{Math.abs(data.carbs)}</span><br/>"
+    content +="<span class=\"name\">Sugars:</span><span class=\"value\"> #{Math.abs(data.sugars)}</span><br/>"
+    content +="<span class=\"name\">Shelf:</span><span class=\"value\"> #{data.shelf}</span><br/>"
+    content +="<span class=\"name\">Potassium:</span><span class=\"value\"> #{Math.abs(data.potassium)}</span><br/>"
+    content +="<span class=\"name\">Vitamins:</span><span class=\"value\"> #{Math.abs(data.vitamins)}</span><br/>"
+    content +="<span class=\"name\">Weight:</span><span class=\"value\"> #{Math.abs(data.weight)}</span><br/>"
+    content +="<span class=\"name\">Cups:</span><span class=\"value\"> #{Math.abs(data.cups)}</span>"
+    window.tooltip.showTooltip(content,d3.event)
+
+  hide_details: (data, i, element) =>
+#    d3.select(element).attr("stroke", (d) => null)
+#    d3.select(element).attr("stroke-width", (d) => 2)
+
+    #Deselect the parallel coordinate line
+    d = d3.select(element).data()
+    id = d[0].name
+    for i in window.lines[0]
+      if i.__data__.name == id
+        d3.select(i).style("stroke-width", 1)
+    d3.selectAll("path.node").data(d[0]).style("stroke-width", 1)
+    window.tooltip.hideTooltip()
+
+  select: (data, i, element) =>
+    #Select the bubble chart circle
+    d = d3.select(element).data()
+    id = d[0].name
+    for i in window.circles[0]
+      if i.__data__.name == id
+        d3.select(i).style("stroke", "black")
+        d3.select(i).style("stroke-width", 7)
+    d3.select(element).style("stroke-width", 10)
+    this.show_details(data, i, element)
+
+  unselect: (data, i, element) =>
+    #Deselect the bubble chart circle
+    d = d3.select(element).data()
+    id = d[0].name
+    for i in window.circles[0]
+      if i.__data__.name == id
+        d3.select(i).style("stroke", null)
+        d3.select(i).style("stroke-width", 1)
+    d3.select(element).style("stroke-width", 1)
+    this.hide_details(data, i, element)
+
+  create_vis: () =>
+    @parallel = d3.select("#chart-left").append("svg")
+      .attr("width", @parWidth)
+      .attr("height", @parHeight)
+      .attr("id", "svg_parallel")
+
+    @force
+      .nodes(@nodes)
+#      .links(@nodes)
+      .start()
+
+    #Used for mouse callbacks
+    that = this
+
+    @lines = @parallel.selectAll("path.node")
+      .data(@nodes, (d) -> d.name)
+      .attr("id", (d) -> '#' + String(d.name))
+      .enter().append("path")
+      .attr("class", "node")
+      .attr("name", (d) -> d.name)
+      .style("stroke-width", 1)
+      .style("stroke", (d) => d.color)
+      .on("mouseover", (d,i) -> that.select(d,i,this))
+      .on("mouseout", (d,i) -> that.unselect(d,i,this))
+
+    @g = @parallel.selectAll("g.trait")
+      .data(['Manufacturer', 'Calories','Protein', 'Fat', 'Sodium', 'Fiber', 'Carbohydrates', 'Sugars', 'Potassium', 'Vitamins'])
+      .enter().append("svg:g")
+      .attr("class", "trait")
+      .attr("transform", (d,i) => "translate(" + (40+(@parWidth/@columns)*i) + ")")
+    @g.append("svg:g")
+      .attr("class", "axis")
+      .each((d) -> d3.select(this).call(that.axis.scale(that.scales[String(d)])))
+      .append("svg:text")
+      .attr("class", "title")
+      .attr("text-anchor", "middle")
+      .attr("y", 12)
+      .text(String)
+
+    @force.on("tick", () =>
+    @lines.attr("d", (d,i) =>
+      @line([{x:40+(@parWidth/@columns)*0, y:that.getScale('Manufacturer',d.manufacturer)},{x:40+(@parWidth/@columns)*1, y:that.getScale('Calories',d.value)},{x:40+(@parWidth/@columns)*2, y:that.getScale('Protein',d.protein)},{x:40+(@parWidth/@columns)*3, y:that.getScale('Fat',d.fat)},{x:40+(@parWidth/@columns)*4, y:that.getScale('Sodium',d.sodium)},{x:40+(@parWidth/@columns)*5, y:that.getScale('Fiber',d.fiber)},{x:40+(@parWidth/@columns)*6, y:that.getScale('Carbohydrates',Math.abs(d.carbs))},{x:40+(@parWidth/@columns)*7, y:that.getScale('Sugars',Math.abs(d.sugars))},{x:40+(@parWidth/@columns)*8, y:that.getScale('Potassium',d.potassium)},{x:40+(@parWidth/@columns)*9, y:that.getScale('Vitamins',d.vitamins)}])))
+
+    window.lines = @lines
+# Class for the Bubble Chart
 class BubbleChart
   constructor: (data) ->
     @data = data
-    @width = 940
+    @width = 1000
     @height = 600
-    @colSpace = 940/7 #Space between manufacturer clusters
-    @txtSpace = 940/7 * 2 #Space between manufacturer column labels
+    @colSpace = 1000/7 #Space between manufacturer clusters
+    @txtSpace = 1000/7 * 2 #Space between manufacturer column labels
 
-    @tooltip = CustomTooltip("cereal_tooltip", 240)
+    window.tooltip = CustomTooltip("cereal_tooltip", 240)
 
     # locations the nodes will move towards
     # depending on which view is currently being
     # used
     @center = {x: @width / 2, y: @height / 2}
-    #{"A": @width/2 - (@width/7)*3, "G": @width/2 - (@width/7)*2, "N": @width/2 - @width/7, "P": @width / 2, "K": @width / 2 + (@width/7),"Q": @width / 2 + (@width/7)*2, "R": @width / 2 + (@width/7)*3}
     @manufacturer_centers = {
       "A": {x: @width/2 - @colSpace*1.5, y: @height / 2},
       "G": {x: @width/2 - @colSpace*1, y: @height / 2},
@@ -34,23 +219,45 @@ class BubbleChart
     @nodes = []
     @force = null
     @circles = null
+    @circleSelected = null
 
     # nice looking colors - no reason to buck the trend
-
-
     @fill_color = d3.scale.ordinal()
       .domain(["A", "G","N", "P", "K", "Q", "R"])
-      .range(colorbrewer.Greens[6]);
+      .range(colorbrewer.Paired[7]);
+
+
 
     # use the max total_amount in the data as the max in the scale's domain
     max_amount = d3.max(@data, (d) -> parseInt(d.Calories))
-    @radius_scale = d3.scale.pow().exponent(3.5).domain([0, max_amount]).range([2, 85])
-
+    @radius_scale = d3.scale.pow().exponent(4).domain([0, max_amount]).range([10, 85])
+#    @fill_color_calories = d3.scale.pow().exponent(6).domain([0,max_amount]).range(['pink', 'blue']);
     @fill_color_calories = d3.scale.linear()
       .domain([0, max_amount])
-      .range(colorbrewer.Reds[9])
+      .range(["hsl(128,99%,100%)", "hsl(228,30%,20%))"])
+    @fill_color_calories.interpolate(d3.interpolateHsl)
+
+    max_sugar = d3.max(@data, (d) -> parseInt(d.Sugars))
+    @radius_sugar_scale = d3.scale.pow().exponent(2).domain([0, max_sugar]).range([10, 65])
+    @fill_color_sugars = d3.scale.linear()
+      .domain([0, max_sugar])
+      .range(["hsl(160, 150%, 100%)", "hsl(146, 90%, 39%)"])
+    @fill_color_sugars.interpolate(d3.interpolateHsl)
+
+    max_protein = d3.max(@data, (d) -> parseInt(d.Protein))
+    @radius_protein_scale = d3.scale.pow().exponent(2).domain([0, max_protein]).range([10, 65])
+    @fill_color_protein = d3.scale.linear()
+      .domain([0, max_protein])
+      .range(["hsl(350, 150%, 100%)", "hsl(358, 100%, 51%)"])
+    @fill_color_protein.interpolate(d3.interpolateHsl)
+    @previousStrokeColor = null
+
+#    @fill_color_calories = d3.scale.linear()
+#      .domain([0, max_amount])
+#      .range(colorbrewer.Reds[9])
     
     this.create_nodes()
+#    bubble_dict = @nodes.toDict('name')
     this.create_vis()
 
   # create node objects from original data
@@ -77,8 +284,9 @@ class BubbleChart
         vitamins: d.Vitamins
         weight: d.Weight
         cups: d.Cups
-        x: Math.random() * 900
+        x: Math.random() * 1000
         y: Math.random() * 800
+        color: @fill_color(d.Manufacturer)
       }
       @nodes.push node
 
@@ -104,9 +312,10 @@ class BubbleChart
     # see transition below
     @circles.enter().append("circle")
       .attr("r", 0)
-      .attr("fill", (d) => @fill_color(d.manufacturer))
+      .attr("fill", (d) => d.color)
       .attr("stroke-width", 2)
-      .attr("stroke", (d) => d3.rgb(@fill_color(d.manufacturer)).darker())
+#      .attr("stroke", (d) => d3.rgb(d.color).darker())
+      .attr("stroke", (d) => null)
       .attr("id", (d) -> "bubble_#{d.id}")
       .on("mouseover", (d,i) -> that.show_details(d,i,this))
       .on("mouseout", (d,i) -> that.hide_details(d,i,this))
@@ -115,14 +324,15 @@ class BubbleChart
     # correct radius
     @circles.transition().duration(2000).attr("r", (d) -> d.radius)
 
+    window.circles = @circles
 
-  # Charge function that is called for each node.
+  # Charge function \that is called for each node.
   # Charge is proportional to the diameter of the
   # circle (which is stored in the radius attribute
   # of the circle's associated data.
-  # This is done to allow for accurate collision 
+  # This is done to allow for accurate collision
   # detection with nodes of different sizes.
-  # Charge is negative because we want nodes to 
+  # Charge is negative because we want nodes to
   # repel.
   # Dividing by 8 scales down the charge to be
   # appropriate for the visualization dimensions.
@@ -169,9 +379,109 @@ class BubbleChart
           .attr("cy", (d) -> d.y)
     @force.start()
 
+  setColorBySugar: () =>
+    (d) =>
+      d.color = @fill_color_sugars(d.sugars)
+
+  color_by_sugars: () =>
+    @circles.each(this.setColorBySugar)
+      .transition()
+      .duration(2000)
+      .attr("fill", (d) => @fill_color_sugars(d.sugars))
+      .attr("stroke-width", 2)
+      .attr("stroke", (d) =>
+        d3.hsl(@fill_color_sugars(d.sugars)).darker()
+        @previousStrokeColor = "hsl")
+    window.circles = @circles
+
+  setColorByCalorie: () =>
+    (d) =>
+      d.color = @fill_color_calories(d.value)
+
+  color_by_calories: () =>
+    @circles.each(this.setColorByCalorie)
+      .transition()
+      .duration(2000)
+      .attr("fill", (d) => @fill_color_calories(d.value))
+      .attr("stroke-width", 2)
+      .attr("stroke", (d) =>
+        d3.hsl(@fill_color_calories(d.value)).darker()
+        @previousStrokeColor = "hsl")
+    window.circles = @circles
+
+  setColorByManufacturer: () =>
+    (d) =>
+      d.color = @fill_color(d.manufacturer)
+
+  color_by_manufacturer: () =>
+    @circles.each(this.setColorByManufacturer)
+      .transition()
+      .duration(2000)
+      .attr("fill", (d) => d.color)
+      .attr("stroke-width", 2)
+      .attr("stroke", (d) =>
+        d3.rgb(d.color).darker()
+        @previousStrokeColor = "rgb")
+    window.circles = @circles
+
+  setColorByProtein: () =>
+    (d) =>
+      d.color = @fill_color_protein(d.protein)
+
+  color_by_protein: () =>
+    @circles.each(this.setColorByProtein)
+      .transition()
+      .duration(2000)
+      .attr("fill", (d) => @fill_color_protein(d.protein))
+      .attr("stroke-width", 2)
+      .attr("stroke", (d) =>
+        d3.hsl(@fill_color_protein(d.protein)).darker()
+        @previousStrokeColor = "hsl")
+    window.circles = @circles
+
+  setRadiusBySugar: () =>
+    (d) =>
+#      console.log d.sugars
+      d.radius = @radius_sugar_scale(Math.abs(d.sugars))
+#      console.log d.radius
+
+  resize_by_sugar: () =>
+    @circles.each(this.setRadiusBySugar())
+      .transition()
+      .duration(2000)
+      .attr("r", (d) -> d.radius)
+    window.circles = @circles
+
+  setRadiusByProtein: () =>
+    (d) =>
+#      console.log d.sugars
+      d.radius = @radius_protein_scale(Math.abs(d.protein))
+#      console.log d.radius
+
+  resize_by_protein: () =>
+    @circles.each(this.setRadiusByProtein())
+      .transition()
+      .duration(2000)
+      .attr("r", (d) -> d.radius)
+    window.circles = @circles
+
+  setRadiusByCalories: () =>
+    (d) =>
+#      console.log d.calories
+      d.radius = @radius_scale(Math.abs(d.value))
+#      console.log d.radius
+
+  resize_by_calories: () =>
+    @circles.each(this.setRadiusByCalories())
+      .transition()
+      .duration(2000)
+      .attr("r", (d) -> d.radius)
+#    this.color_by_calories()
+    window.circles = @circles
+
     this.display_manufacturers()
 
-  # move all circles to their associated @year_centers 
+  # move all circles to their associated @manufacturer_centers
   move_towards_manufacturer: (alpha) =>
     (d) =>
       target = @manufacturer_centers[d.manufacturer]
@@ -185,48 +495,68 @@ class BubbleChart
     manufacturers = @vis.selectAll(".manufacturers")
       .data(manufacturers_data)
 
-    manufacturers.enter().append("text")
-      .attr("class", "manufacturers")
-      #.attr("font-weight", "bold")
-      .attr("x", (d) => manufacturers_x[d] )
-      .attr("y", 40)
-      .attr("text-anchor", "middle")
-      .text((d) -> d)
+#    manufacturers.enter().append("text")
+#      .attr("class", "manufacturers")
+#      #.attr("font-weight", "bold")
+#      .attr("x", (d) => manufacturers_x[d] )
+#      .attr("y", 40)
+#      .attr("text-anchor", "middle")
+#      .text((d) -> d)
 
-  # Method to hide year titiles
+  # Method to hide manufacturer text
   hide_manufacturers: () =>
     manufacturers = @vis.selectAll(".manufacturers").remove()
 
   show_details: (data, i, element) =>
     d3.select(element).attr("stroke", "black")
+    d3.select(element).style("stroke-width", 7)
+
+    #Select the parallel coordinate line
+    d = d3.select(element).data()
+    id = d[0].name
+    for i in window.lines[0]
+      if i.__data__.name == id
+        d3.select(i).style("stroke-width", 10)
+
     content = "<span class=\"name\">Cereal:</span><span class=\"value\"> #{data.name}</span><br/>"
     content +="<span class=\"name\">Calories:</span><span class=\"value\"> #{addCommas(data.value)}</span><br/>"
     content +="<span class=\"name\">Manufacturer:</span><span class=\"value\"> #{data.manufacturer}</span><br/>"
     content +="<span class=\"name\">Type:</span><span class=\"value\"> #{data.type}</span><br/>"
-    content +="<span class=\"name\">Protein:</span><span class=\"value\"> #{data.protein}</span><br/>"
-    content +="<span class=\"name\">Fat:</span><span class=\"value\"> #{data.fat}</span><br/>"
-    content +="<span class=\"name\">Sodium:</span><span class=\"value\"> #{data.sodium}</span><br/>"
-    content +="<span class=\"name\">Fiber:</span><span class=\"value\"> #{data.fiber}</span><br/>"
-    content +="<span class=\"name\">Carbohydrates:</span><span class=\"value\"> #{data.carbs}</span><br/>"
-    content +="<span class=\"name\">Sugars:</span><span class=\"value\"> #{data.sugars}</span><br/>"
+    content +="<span class=\"name\">Protein:</span><span class=\"value\"> #{Math.abs(data.protein)}</span><br/>"
+    content +="<span class=\"name\">Fat:</span><span class=\"value\"> #{Math.abs(data.fat)}</span><br/>"
+    content +="<span class=\"name\">Sodium:</span><span class=\"value\"> #{Math.abs(data.sodium)}</span><br/>"
+    content +="<span class=\"name\">Fiber:</span><span class=\"value\"> #{Math.abs(data.fiber)}</span><br/>"
+    content +="<span class=\"name\">Carbohydrates:</span><span class=\"value\"> #{Math.abs(data.carbs)}</span><br/>"
+    content +="<span class=\"name\">Sugars:</span><span class=\"value\"> #{Math.abs(data.sugars)}</span><br/>"
     content +="<span class=\"name\">Shelf:</span><span class=\"value\"> #{data.shelf}</span><br/>"
-    content +="<span class=\"name\">Potassium:</span><span class=\"value\"> #{data.potassium}</span><br/>"
-    content +="<span class=\"name\">Vitamins:</span><span class=\"value\"> #{data.vitamins}</span><br/>"
-    content +="<span class=\"name\">Weight:</span><span class=\"value\"> #{data.weight}</span><br/>"
-    content +="<span class=\"name\">Cups:</span><span class=\"value\"> #{data.cups}</span>"
-    @tooltip.showTooltip(content,d3.event)
-
+    content +="<span class=\"name\">Potassium:</span><span class=\"value\"> #{Math.abs(data.potassium)}</span><br/>"
+    content +="<span class=\"name\">Vitamins:</span><span class=\"value\"> #{Math.abs(data.vitamins)}</span><br/>"
+    content +="<span class=\"name\">Weight:</span><span class=\"value\"> #{Math.abs(data.weight)}</span><br/>"
+    content +="<span class=\"name\">Cups:</span><span class=\"value\"> #{Math.abs(data.cups)}</span>"
+    window.tooltip.showTooltip(content,d3.event)
 
   hide_details: (data, i, element) =>
-    d3.select(element).attr("stroke", (d) => d3.rgb(@fill_color(d.manufacturer)).darker())
-    @tooltip.hideTooltip()
+    d3.select(element).attr("stroke", (d) => null)
+    d3.select(element).attr("stroke-width", (d) => 2)
 
+    #Deselect the parallel coordinate line
+    d = d3.select(element).data()
+    id = d[0].name
+    for i in window.lines[0]
+      if i.__data__.name == id
+        d3.select(i).style("stroke-width", 1)
+    d3.selectAll("path.node").data(d[0]).style("stroke-width", 1)
+    window.tooltip.hideTooltip()
+
+  get_selected: () =>
+    @circleSelected
 
 root = exports ? this
-
 $ ->
   chart = null
-
+  parallel_chart = null
+  render_parallel = (json) ->
+    parallel_chart = new ParallelCoords json
   render_vis = (csv) ->
     chart = new BubbleChart csv
     chart.start()
@@ -238,7 +568,25 @@ $ ->
   root.toggle_view = (view_type) =>
     if view_type == 'manufacturer'
       root.display_manufacturers()
+    else if view_type == 'resize_by_sugar'
+      chart.resize_by_sugar()
+    else if view_type == 'resize_by_calories'
+      chart.resize_by_calories()
+    else if view_type == 'resize_by_protein'
+      chart.resize_by_protein()
+    else if view_type == 'calories_in_color'
+      chart.color_by_calories()
+    else if view_type == 'sugars_in_color'
+      chart.color_by_sugars()
+    else if view_type == 'manufacturer_by_color'
+      chart.color_by_manufacturer()
+    else if view_type == 'protein_by_color'
+      chart.color_by_protein()
     else
       root.display_all()
+      root.nodeSelected = chart.get_selected()
 
   d3.csv "data/a1-cereals.csv", render_vis
+  d3.csv "data/a1-cereals.csv", render_parallel
+#  d3.json "cereals.json", render_parallel
+
