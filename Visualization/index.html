@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en"> <![endif]-->
 <!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en"> <![endif]-->
 <!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en"> <![endif]-->
@@ -34,8 +34,6 @@
         }
 
         #vis {
-            /*position:absolute;*/
-            /*top: -25px;*/
             position: relative;
             top: 0px;
             left: 50%;
@@ -43,30 +41,15 @@
         }
 
         #chart-left {
-            /*position: absolute;*/
-            /*top: 525px;*/
-            /*left: 200px;*/
-            /*position: absolute;*/
-            /*left: 450px;*/
-            /*top: 650px;*/
-            /*position: relative;*/
             position: relative;
             top: 0px;
             left: 50%;
-            margin-left: -500px; /*half the size of width of the chart*/
+            margin-left: -480px; /*half the size of width of the chart*/
         }
         #chart-right {
-            /*position: absolute;*/
-            /*right: 100;*/
-            /*top: 450px;*/
-            /*position: absolute;*/
             position: absolute;
             top: 600px;
             right: 250px;
-
-
-            /*top: -90px;*/
-
         }
 
         .link {
@@ -97,6 +80,7 @@
             font-weight: bold;
         }
 
+
     </style>
 
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -114,25 +98,25 @@
 
   <div id="container" class="container">
     <header>
-    <!--<h1>D3 Visualization</h1>-->
+    <h1>Visual Analytics D3 Project</h1>
+    <h2> by Grace Christenbery and Dimitrios Arethas</h2>
     </header>
     <div id="main" role="main">
       <div id="view_selection" class="btn-group">
-        <a href="#" id="all" class="btn active">All Cereal</a>
-        <a href="#" id="manufacturer" class="btn">Cereal by Manufacturer</a>
-        <a href="#" id="resize_by_sugar" class="btn">Cereal by Sugar</a>
-        <a href="#" id="resize_by_calories" class="btn">Cereal by Calories</a>
-        <a href="#" id="resize_by_protein" class="btn">Cereal by Protein</a>
-        <a href="#" id="calories_in_color" class="btn">Calories in Color</a>
-        <a href="#" id="sugars_in_color" class="btn">Sugars in Color</a>
-        <a href="#" id="manufacturer_by_color" class="btn">Manufacturer by Color</a>
-        <a href="#" id="protein_by_color" class="btn">Protein by Color</a>
-      </div>
+        <a href="#" id="all" class="hide">All Cereal</a>
+        <a href="#" id="manufacturer" class="hide">Cereal by Manufacturer</a>
+        <a href="#" id="resize_by_sugar" class="hide">Cereal by Sugar</a>
+        <a href="#" id="resize_by_calories" class="hide">Cereal by Calories</a>
+
+        <a href="#" id="resize_by_protein" class="hide">Cereal by Protein</a>
+        <a href="#" id="calories_in_color" class="hide">Calories in Color</a>
+        <a href="#" id="sugars_in_color" class="hide">Sugars in Color</a>
+        <a href="#" id="manufacturer_by_color" class="hide">Manufacturer by Color</a>
+        <a href="#" id="protein_by_color" class="hide">Protein by Color</a>
+       </div>
       <div id="vis"></div>
     </div>
-    <footer>
-    <!--<p>By Grace Christenbery and Dimitri Arethas</p>-->
-    </footer>
+
   </div> <!--! end of #container -->
 
   <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script> -->
@@ -142,35 +126,30 @@
   <script defer src="js/script.js"></script>
   <script src="js/CustomTooltip.js"></script>
   <script src="js/libs/coffee-script.js"></script>
-  <!--<script src="js/libs/d3.min.js"></script>-->
-  <script src="js/libs/d3.min.js"></script>
-  <script src="js/libs/d3.csv.min.js"></script>
-  <script src="js/libs/d3.layout.min.js"></script>
-  <script src="js/libs/d3.geom.min.js"></script>
+  <script src="js/libs/d3.v2.min.js"></script>
+  <script src="js/libs/underscore.js"></script>
   <script src="js/libs/colorbrewer.js"></script>
   <script src="js/libs/dat.gui.min.js"></script>
   <script type="text/coffeescript" src="coffee/vis.coffee"></script>
-  <!--<script src="parallel.js"></script>-->
   <script type="text/javascript">
-    //var myChart = chart({width: 400, height: 400, parWidth: 800, parHeight: 400});
-    $("#view_selection").hide()
     $(document).ready(function() {
         $(document).ready(function() {
+            //Menu booleans
+            var sortByManufacturer = false;
             var sizeByCalories = true;
             var sizeBySugar = false;
             var sizeByProtein = false;
+
             //Menu
             var Menu = function() {
                 //Toggle for sort by manufacturer
                 this.Manufacturer = function() {
-                    if($('#manufacturer').attr('class') == 'btn active') {
-                        $('#view_selection a').removeClass('active');
-                        $('#all').toggleClass('active');
+                    if(sortByManufacturer === true) {
+                        sortByManufacturer = false;
                         toggle_view($('#all').attr('id'));
                     }
                     else {
-                        $('#view_selection a').removeClass('active');
-                        $('#manufacturer').toggleClass('active');
+                        sortByManufacturer = true;
                         toggle_view($('#manufacturer').attr('id'));
                     }
                 };
@@ -246,10 +225,9 @@
   <div id="chart-left"></div>
   <div id="chart-right"></div>
   <div style="clear:both;"></div>
-  <script src="http://mbostock.github.com/d3/d3.v2.js"></script>
-  <script src="http://documentcloud.github.com/underscore/underscore.js"></script>
-  <!--<script type="text/javascript" src="parallel.js"></script>-->
-
+  <footer>
+      <!--<p><b>By Grace Christenbery and Dimitri Arethas</b></p>-->
+  </footer>
   <!--[if lt IE 7 ]>
     <script src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.3/CFInstall.min.js"></script>
     <script>window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})</script>

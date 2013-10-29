@@ -1,10 +1,4 @@
-#Turn an array into a dictionary
-# key = The key by which to index the dictionary
-Array::toDict = (key) ->
-  dict = {}
-  dict[obj[key]] = obj for obj in this when obj[key]?
-  dict
-
+#Class for Parallel Coordinates Chart
 class ParallelCoords
   constructor: (data) ->
     @data = data
@@ -13,8 +7,6 @@ class ParallelCoords
     @width = 300
     @height = 300
     @nodes = []
-    @nodeDict = null
-#    @links = []
     @lines = []
     @columns = 10
     @axis = d3.svg.axis().orient("left")
@@ -43,7 +35,6 @@ class ParallelCoords
     @radius_scale = d3.scale.pow().exponent(4).domain([0, max_amount]).range([10, 85])
 
     this.create_nodes()
-#    parallel_dict = @nodes.toDict('name')
     this.create_vis()
 
   getScale: (name, d) =>
@@ -78,13 +69,6 @@ class ParallelCoords
         @nodes.push node
 
     @nodes.sort (a,b) -> b.value - a.value
-#    @data.links.forEach (d) =>
-#      link = {
-#        source: d.source
-#        target: d.target
-#        value: d.value
-#      }
-#      @links.push link
 
   show_details: (data, i, element) =>
 
@@ -106,16 +90,6 @@ class ParallelCoords
     window.tooltip.showTooltip(content,d3.event)
 
   hide_details: (data, i, element) =>
-#    d3.select(element).attr("stroke", (d) => null)
-#    d3.select(element).attr("stroke-width", (d) => 2)
-
-    #Deselect the parallel coordinate line
-    d = d3.select(element).data()
-    id = d[0].name
-    for i in window.lines[0]
-      if i.__data__.name == id
-        d3.select(i).style("stroke-width", 1)
-    d3.selectAll("path.node").data(d[0]).style("stroke-width", 1)
     window.tooltip.hideTooltip()
 
   select: (data, i, element) =>
@@ -136,8 +110,8 @@ class ParallelCoords
     for i in window.circles[0]
       if i.__data__.name == id
         d3.select(i).style("stroke", null)
-        d3.select(i).style("stroke-width", 1)
-    d3.select(element).style("stroke-width", 1)
+        d3.select(i).style("stroke-width", 2)
+    d3.select(element).style("stroke-width", 2)
     this.hide_details(data, i, element)
 
   create_vis: () =>
@@ -148,7 +122,6 @@ class ParallelCoords
 
     @force
       .nodes(@nodes)
-#      .links(@nodes)
       .start()
 
     #Used for mouse callbacks
@@ -160,7 +133,7 @@ class ParallelCoords
       .enter().append("path")
       .attr("class", "node")
       .attr("name", (d) -> d.name)
-      .style("stroke-width", 1)
+      .style("stroke-width", 2)
       .style("stroke", (d) => d.color)
       .on("mouseover", (d,i) -> that.select(d,i,this))
       .on("mouseout", (d,i) -> that.unselect(d,i,this))
@@ -182,22 +155,19 @@ class ParallelCoords
     @force.on("tick", () =>
     @lines.attr("d", (d,i) =>
       @line([{x:40+(@parWidth/@columns)*0, y:that.getScale('Manufacturer',d.manufacturer)},{x:40+(@parWidth/@columns)*1, y:that.getScale('Calories',d.value)},{x:40+(@parWidth/@columns)*2, y:that.getScale('Protein',d.protein)},{x:40+(@parWidth/@columns)*3, y:that.getScale('Fat',d.fat)},{x:40+(@parWidth/@columns)*4, y:that.getScale('Sodium',d.sodium)},{x:40+(@parWidth/@columns)*5, y:that.getScale('Fiber',d.fiber)},{x:40+(@parWidth/@columns)*6, y:that.getScale('Carbohydrates',Math.abs(d.carbs))},{x:40+(@parWidth/@columns)*7, y:that.getScale('Sugars',Math.abs(d.sugars))},{x:40+(@parWidth/@columns)*8, y:that.getScale('Potassium',d.potassium)},{x:40+(@parWidth/@columns)*9, y:that.getScale('Vitamins',d.vitamins)}])))
-
     window.lines = @lines
+
 # Class for the Bubble Chart
 class BubbleChart
   constructor: (data) ->
     @data = data
     @width = 1000
     @height = 600
-    @colSpace = 1000/7 #Space between manufacturer clusters
-    @txtSpace = 1000/7 * 2 #Space between manufacturer column labels
-
+    @colSpace = 1000/7 # Space between manufacturer clusters
     window.tooltip = CustomTooltip("cereal_tooltip", 240)
 
-    # locations the nodes will move towards
-    # depending on which view is currently being
-    # used
+    # Locations the nodes will move towards
+    # depends on which view is currently active
     @center = {x: @width / 2, y: @height / 2}
     @manufacturer_centers = {
       "A": {x: @width/2 - @colSpace*1.5, y: @height / 2},
@@ -209,29 +179,25 @@ class BubbleChart
       "R": {x: @width / 2 + @colSpace*1.5, y: @height / 2}
     }
 
-    # used when setting up force and
-    # moving around nodes
+    # Used when setting up force and moving around nodes
     @layout_gravity = -0.01
     @damper = 0.1
 
-    # these will be set in create_nodes and create_vis
+    # These will be set in create_nodes and create_vis
     @vis = null
     @nodes = []
     @force = null
     @circles = null
     @circleSelected = null
 
-    # nice looking colors - no reason to buck the trend
+    #C olorbrewer set of 7 colors (not color-blind safe)
     @fill_color = d3.scale.ordinal()
       .domain(["A", "G","N", "P", "K", "Q", "R"])
       .range(colorbrewer.Paired[7]);
 
-
-
-    # use the max total_amount in the data as the max in the scale's domain
+    # Use the max total_amount in the data as the max in the scale's domain
     max_amount = d3.max(@data, (d) -> parseInt(d.Calories))
     @radius_scale = d3.scale.pow().exponent(4).domain([0, max_amount]).range([10, 85])
-#    @fill_color_calories = d3.scale.pow().exponent(6).domain([0,max_amount]).range(['pink', 'blue']);
     @fill_color_calories = d3.scale.linear()
       .domain([0, max_amount])
       .range(["hsl(128,99%,100%)", "hsl(228,30%,20%))"])
@@ -251,19 +217,12 @@ class BubbleChart
       .range(["hsl(350, 150%, 100%)", "hsl(358, 100%, 51%)"])
     @fill_color_protein.interpolate(d3.interpolateHsl)
     @previousStrokeColor = null
-
-#    @fill_color_calories = d3.scale.linear()
-#      .domain([0, max_amount])
-#      .range(colorbrewer.Reds[9])
     
     this.create_nodes()
-#    bubble_dict = @nodes.toDict('name')
     this.create_vis()
 
-  # create node objects from original data
-  # that will serve as the data behind each
-  # bubble in the vis, then add each node
-  # to @nodes to be used later
+  # Create node objects from original data that will serve as the data behind each bubble in the chart.
+  # Add each node to @nodes for use in the chart.
   create_nodes: () =>
     @data.forEach (d) =>
       node = {
@@ -292,8 +251,7 @@ class BubbleChart
 
     @nodes.sort (a,b) -> b.value - a.value
 
-
-  # create svg at #vis and then 
+  # Create svg at #vis and then
   # create circle representation for each node
   create_vis: () =>
     @vis = d3.select("#vis").append("svg")
@@ -304,50 +262,38 @@ class BubbleChart
     @circles = @vis.selectAll("circle")
       .data(@nodes, (d) -> d.id)
 
-    # used because we need 'this' in the 
-    # mouse callbacks
+    # "That" is defined because we need this scope's "this" in mouse callbacks.
     that = this
 
-    # radius will be set to 0 initially.
-    # see transition below
+    # Radius is set to 0 initially.
+    # The transition sets the radius.
     @circles.enter().append("circle")
+      .attr("class", "node")
       .attr("r", 0)
       .attr("fill", (d) => d.color)
       .attr("stroke-width", 2)
-#      .attr("stroke", (d) => d3.rgb(d.color).darker())
       .attr("stroke", (d) => null)
       .attr("id", (d) -> "bubble_#{d.id}")
       .on("mouseover", (d,i) -> that.show_details(d,i,this))
       .on("mouseout", (d,i) -> that.hide_details(d,i,this))
 
-    # Fancy transition to make bubbles appear, ending with the
-    # correct radius
+    # Fancy transitions where bubbles appear.
     @circles.transition().duration(2000).attr("r", (d) -> d.radius)
-
     window.circles = @circles
 
-  # Charge function \that is called for each node.
-  # Charge is proportional to the diameter of the
-  # circle (which is stored in the radius attribute
-  # of the circle's associated data.
-  # This is done to allow for accurate collision
-  # detection with nodes of different sizes.
-  # Charge is negative because we want nodes to
-  # repel.
+  #Force-charging our bubble chart...
   # Dividing by 8 scales down the charge to be
   # appropriate for the visualization dimensions.
   charge: (d) ->
     -Math.pow(d.radius, 2.0) / 8
 
-  # Starts up the force layout with
-  # the default values
+  # Starts up the force layout with the default values.
   start: () =>
     @force = d3.layout.force()
       .nodes(@nodes)
       .size([@width, @height])
 
-  # Sets up force layout to display
-  # all nodes in one circle.
+  # Sets up force layout to display all nodes in one circle.
   display_group_all: () =>
     @force.gravity(@layout_gravity)
       .charge(this.charge)
@@ -358,8 +304,6 @@ class BubbleChart
           .attr("cy", (d) -> d.y)
     @force.start()
 
-    this.hide_manufacturers()
-
   # Moves all circles towards the @center
   # of the visualization
   move_towards_center: (alpha) =>
@@ -367,8 +311,7 @@ class BubbleChart
       d.x = d.x + (@center.x - d.x) * (@damper + 0.02) * alpha
       d.y = d.y + (@center.y - d.y) * (@damper + 0.02) * alpha
 
-  # sets the display of bubbles to be separated
-  # into each year. Does this by calling move_towards_year
+  # Sets the display of bubbles to be separated by manufacturer. Does this by calling move_towards_manufactuer
   display_by_manufacturer: () =>
     @force.gravity(@layout_gravity)
       .charge(this.charge)
@@ -380,8 +323,7 @@ class BubbleChart
     @force.start()
 
   setColorBySugar: () =>
-    (d) =>
-      d.color = @fill_color_sugars(d.sugars)
+    (d) => d.color = @fill_color_sugars(d.sugars)
 
   color_by_sugars: () =>
     @circles.each(this.setColorBySugar)
@@ -395,8 +337,7 @@ class BubbleChart
     window.circles = @circles
 
   setColorByCalorie: () =>
-    (d) =>
-      d.color = @fill_color_calories(d.value)
+    (d) => d.color = @fill_color_calories(d.value)
 
   color_by_calories: () =>
     @circles.each(this.setColorByCalorie)
@@ -425,8 +366,7 @@ class BubbleChart
     window.circles = @circles
 
   setColorByProtein: () =>
-    (d) =>
-      d.color = @fill_color_protein(d.protein)
+    (d) => d.color = @fill_color_protein(d.protein)
 
   color_by_protein: () =>
     @circles.each(this.setColorByProtein)
@@ -440,10 +380,7 @@ class BubbleChart
     window.circles = @circles
 
   setRadiusBySugar: () =>
-    (d) =>
-#      console.log d.sugars
-      d.radius = @radius_sugar_scale(Math.abs(d.sugars))
-#      console.log d.radius
+    (d) => d.radius = @radius_sugar_scale(Math.abs(d.sugars))
 
   resize_by_sugar: () =>
     @circles.each(this.setRadiusBySugar())
@@ -453,10 +390,7 @@ class BubbleChart
     window.circles = @circles
 
   setRadiusByProtein: () =>
-    (d) =>
-#      console.log d.sugars
-      d.radius = @radius_protein_scale(Math.abs(d.protein))
-#      console.log d.radius
+    (d) => d.radius = @radius_protein_scale(Math.abs(d.protein))
 
   resize_by_protein: () =>
     @circles.each(this.setRadiusByProtein())
@@ -466,46 +400,21 @@ class BubbleChart
     window.circles = @circles
 
   setRadiusByCalories: () =>
-    (d) =>
-#      console.log d.calories
-      d.radius = @radius_scale(Math.abs(d.value))
-#      console.log d.radius
+    (d) => d.radius = @radius_scale(Math.abs(d.value))
 
   resize_by_calories: () =>
     @circles.each(this.setRadiusByCalories())
       .transition()
       .duration(2000)
       .attr("r", (d) -> d.radius)
-#    this.color_by_calories()
     window.circles = @circles
 
-    this.display_manufacturers()
-
-  # move all circles to their associated @manufacturer_centers
+  # Move all circles to their associated @manufacturer_centers
   move_towards_manufacturer: (alpha) =>
     (d) =>
       target = @manufacturer_centers[d.manufacturer]
       d.x = d.x + (target.x - d.x) * (@damper + 0.02) * alpha * 1.1
       d.y = d.y + (target.y - d.y) * (@damper + 0.02) * alpha * 1.1
-
-  # Method to display manufacturer titles ["A", "G", "N", "P", "K", "Q", "R"]
-  display_manufacturers: () =>
-    manufacturers_x = {"A": @width/2 - @txtSpace*1.5, "G": @width/2 - @txtSpace*1, "N": @width/2 - @txtSpace*0.5, "P": @width / 2, "K": @width / 2 + @txtSpace*0.5,"Q": @width / 2 + @txtSpace*1, "R": @width / 2 + @txtSpace*1.5}
-    manufacturers_data = d3.keys(manufacturers_x)
-    manufacturers = @vis.selectAll(".manufacturers")
-      .data(manufacturers_data)
-
-#    manufacturers.enter().append("text")
-#      .attr("class", "manufacturers")
-#      #.attr("font-weight", "bold")
-#      .attr("x", (d) => manufacturers_x[d] )
-#      .attr("y", 40)
-#      .attr("text-anchor", "middle")
-#      .text((d) -> d)
-
-  # Method to hide manufacturer text
-  hide_manufacturers: () =>
-    manufacturers = @vis.selectAll(".manufacturers").remove()
 
   show_details: (data, i, element) =>
     d3.select(element).attr("stroke", "black")
@@ -544,20 +453,22 @@ class BubbleChart
     id = d[0].name
     for i in window.lines[0]
       if i.__data__.name == id
-        d3.select(i).style("stroke-width", 1)
-    d3.selectAll("path.node").data(d[0]).style("stroke-width", 1)
+        d3.select(i).style("stroke-width", 2)
+    d3.selectAll("path.node").data(d[0]).style("stroke-width", 2)
     window.tooltip.hideTooltip()
 
   get_selected: () =>
     @circleSelected
 
+#Export our stuff and get the javascript compiling...
 root = exports ? this
 $ ->
+  #Make our charts from data (csv file)
   chart = null
   parallel_chart = null
-  render_parallel = (json) ->
-    parallel_chart = new ParallelCoords json
-  render_vis = (csv) ->
+  render_parallel = (csv) ->
+    parallel_chart = new ParallelCoords csv
+  render_bubble = (csv) ->
     chart = new BubbleChart csv
     chart.start()
     root.display_all()
@@ -565,6 +476,8 @@ $ ->
     chart.display_group_all()
   root.display_manufacturers = () =>
     chart.display_by_manufacturer()
+
+  #Handle the views...
   root.toggle_view = (view_type) =>
     if view_type == 'manufacturer'
       root.display_manufacturers()
@@ -586,7 +499,7 @@ $ ->
       root.display_all()
       root.nodeSelected = chart.get_selected()
 
-  d3.csv "data/a1-cereals.csv", render_vis
+  # Render our visualization charts
+  d3.csv "data/a1-cereals.csv", render_bubble
   d3.csv "data/a1-cereals.csv", render_parallel
-#  d3.json "cereals.json", render_parallel
 

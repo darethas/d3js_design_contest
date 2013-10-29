@@ -3,6 +3,9 @@ d3js_design_contest
 
 4122 Assignment - D3 Design Contest
 
+## Authors:
+Grace Christenbery and Dimitrios Arethas
+
 ## Pre-reqs:
 
 *  [node](http://nodejs.org/dist/v0.10.20/node-v0.10.20.tar.gz)
@@ -37,6 +40,4 @@ Open index.html to view our work
 
 ### todo:
 
-* Make multiple, small graphs (working on it - Grace)
-* Make a Parallel Coordinates Visualization
-* Reach Goal: Leap Interaction
+* Project complete! View coffee/vis.coffee for visualization code.

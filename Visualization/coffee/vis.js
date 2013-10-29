@@ -3,18 +3,6 @@
   var BubbleChart, ParallelCoords, root,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-  Array.prototype.toDict = function(key) {
-    var dict, obj, _i, _len;
-    dict = {};
-    for (_i = 0, _len = this.length; _i < _len; _i++) {
-      obj = this[_i];
-      if (obj[key] != null) {
-        dict[obj[key]] = obj;
-      }
-    }
-    return dict;
-  };
-
   ParallelCoords = (function() {
     function ParallelCoords(data) {
       this.create_vis = __bind(this.create_vis, this);
@@ -31,7 +19,6 @@
       this.width = 300;
       this.height = 300;
       this.nodes = [];
-      this.nodeDict = null;
       this.lines = [];
       this.columns = 10;
       this.axis = d3.svg.axis().orient("left");
@@ -129,17 +116,6 @@
     };
 
     ParallelCoords.prototype.hide_details = function(data, i, element) {
-      var d, id, _i, _len, _ref;
-      d = d3.select(element).data();
-      id = d[0].name;
-      _ref = window.lines[0];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        i = _ref[_i];
-        if (i.__data__.name === id) {
-          d3.select(i).style("stroke-width", 1);
-        }
-      }
-      d3.selectAll("path.node").data(d[0]).style("stroke-width", 1);
       return window.tooltip.hideTooltip();
     };
 
@@ -168,10 +144,10 @@
         i = _ref[_i];
         if (i.__data__.name === id) {
           d3.select(i).style("stroke", null);
-          d3.select(i).style("stroke-width", 1);
+          d3.select(i).style("stroke-width", 2);
         }
       }
-      d3.select(element).style("stroke-width", 1);
+      d3.select(element).style("stroke-width", 2);
       return this.hide_details(data, i, element);
     };
 
@@ -187,7 +163,7 @@
         return '#' + String(d.name);
       }).enter().append("path").attr("class", "node").attr("name", function(d) {
         return d.name;
-      }).style("stroke-width", 1).style("stroke", function(d) {
+      }).style("stroke-width", 2).style("stroke", function(d) {
         return d.color;
       }).on("mouseover", function(d, i) {
         return that.select(d, i, this);
@@ -247,8 +223,6 @@
       this.get_selected = __bind(this.get_selected, this);
       this.hide_details = __bind(this.hide_details, this);
       this.show_details = __bind(this.show_details, this);
-      this.hide_manufacturers = __bind(this.hide_manufacturers, this);
-      this.display_manufacturers = __bind(this.display_manufacturers, this);
       this.move_towards_manufacturer = __bind(this.move_towards_manufacturer, this);
       this.resize_by_calories = __bind(this.resize_by_calories, this);
       this.setRadiusByCalories = __bind(this.setRadiusByCalories, this);
@@ -275,7 +249,6 @@
       this.width = 1000;
       this.height = 600;
       this.colSpace = 1000 / 7;
-      this.txtSpace = 1000 / 7 * 2;
       window.tooltip = CustomTooltip("cereal_tooltip", 240);
       this.center = {
         x: this.width / 2,
@@ -383,7 +356,7 @@
         return d.id;
       });
       that = this;
-      this.circles.enter().append("circle").attr("r", 0).attr("fill", function(d) {
+      this.circles.enter().append("circle").attr("class", "node").attr("r", 0).attr("fill", function(d) {
         return d.color;
       }).attr("stroke-width", 2).attr("stroke", function(d) {
         return null;
@@ -417,8 +390,7 @@
           return d.y;
         });
       });
-      this.force.start();
-      return this.hide_manufacturers();
+      return this.force.start();
     };
 
     BubbleChart.prototype.move_towards_center = function(alpha) {
@@ -552,8 +524,7 @@
       this.circles.each(this.setRadiusByCalories()).transition().duration(2000).attr("r", function(d) {
         return d.radius;
       });
-      window.circles = this.circles;
-      return this.display_manufacturers();
+      return window.circles = this.circles;
     };
 
     BubbleChart.prototype.move_towards_manufacturer = function(alpha) {
@@ -564,26 +535,6 @@
         d.x = d.x + (target.x - d.x) * (_this.damper + 0.02) * alpha * 1.1;
         return d.y = d.y + (target.y - d.y) * (_this.damper + 0.02) * alpha * 1.1;
       };
-    };
-
-    BubbleChart.prototype.display_manufacturers = function() {
-      var manufacturers, manufacturers_data, manufacturers_x;
-      manufacturers_x = {
-        "A": this.width / 2 - this.txtSpace * 1.5,
-        "G": this.width / 2 - this.txtSpace * 1,
-        "N": this.width / 2 - this.txtSpace * 0.5,
-        "P": this.width / 2,
-        "K": this.width / 2 + this.txtSpace * 0.5,
-        "Q": this.width / 2 + this.txtSpace * 1,
-        "R": this.width / 2 + this.txtSpace * 1.5
-      };
-      manufacturers_data = d3.keys(manufacturers_x);
-      return manufacturers = this.vis.selectAll(".manufacturers").data(manufacturers_data);
-    };
-
-    BubbleChart.prototype.hide_manufacturers = function() {
-      var manufacturers;
-      return manufacturers = this.vis.selectAll(".manufacturers").remove();
     };
 
     BubbleChart.prototype.show_details = function(data, i, element) {
@@ -632,10 +583,10 @@
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         i = _ref[_i];
         if (i.__data__.name === id) {
-          d3.select(i).style("stroke-width", 1);
+          d3.select(i).style("stroke-width", 2);
         }
       }
-      d3.selectAll("path.node").data(d[0]).style("stroke-width", 1);
+      d3.selectAll("path.node").data(d[0]).style("stroke-width", 2);
       return window.tooltip.hideTooltip();
     };
 
@@ -650,14 +601,14 @@
   root = typeof exports !== "undefined" && exports !== null ? exports : this;
 
   $(function() {
-    var chart, parallel_chart, render_parallel, render_vis,
+    var chart, parallel_chart, render_bubble, render_parallel,
       _this = this;
     chart = null;
     parallel_chart = null;
-    render_parallel = function(json) {
-      return parallel_chart = new ParallelCoords(json);
+    render_parallel = function(csv) {
+      return parallel_chart = new ParallelCoords(csv);
     };
-    render_vis = function(csv) {
+    render_bubble = function(csv) {
       chart = new BubbleChart(csv);
       chart.start();
       return root.display_all();
@@ -690,7 +641,7 @@
         return root.nodeSelected = chart.get_selected();
       }
     };
-    d3.csv("data/a1-cereals.csv", render_vis);
+    d3.csv("data/a1-cereals.csv", render_bubble);
     return d3.csv("data/a1-cereals.csv", render_parallel);
   });
 
