@@ -3,6 +3,8 @@ d3js_design_contest
 
 4122 Assignment - D3 Design Contest
 
+![screenshot](https://raw.github.com/Glchriste/d3js_design_contest/master/Visualization/sample.png)
+
 ## Authors:
 Grace Christenbery and Dimitrios Arethas
 
@@ -12,7 +14,7 @@ Grace Christenbery and Dimitrios Arethas
 
 OR
 
-* Python
+* [Python](http://www.python.org/download/)
 
 ## Instructons
 
