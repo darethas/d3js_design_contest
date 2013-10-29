@@ -5,6 +5,8 @@ d3js_design_contest
 
 ![screenshot](https://raw.github.com/Glchriste/d3js_design_contest/master/Visualization/sample.png)
 
+For a live demo, [click here](http://www.glchriste.com/D3Project/d3js_design_contest/Visualization/).
+
 ## Authors:
 Grace Christenbery and Dimitrios Arethas
 
