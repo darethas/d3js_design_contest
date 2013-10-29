@@ -10,13 +10,14 @@ Grace Christenbery and Dimitrios Arethas
 
 ## Pre-reqs:
 
-*  [node](http://nodejs.org/dist/v0.10.20/node-v0.10.20.tar.gz)
+*  [node.js](http://nodejs.org/dist/v0.10.20/node-v0.10.20.tar.gz)
+*  node.js csv module, run `npm install csv` in the command line to install it
 
 OR
 
 * [Python](http://www.python.org/download/)
 
-## Instructons
+## Instructions
 
 * `git clone` the repository
 * `cd` into root directory, and run `npm install`
@@ -35,7 +36,7 @@ OR
 * Point your browser to http://localhost:8888
 * Use the browser's file explorer to open the root directory to launch the visualization
 
-### notes:
+### Notes:
 
 CSV files are in data/, to see it in the browser, for example
 go to localhost:3000/Visualization/data/a1-cereals.csv
@@ -52,7 +53,7 @@ At the moment, this code only works properly with D3.js version 2. The proper li
 
 With a server properly running via the instructions above, index.html will work out of the box.
 
-### todo:
+### Todo:
 
 * Project complete! View coffee/vis.coffee for visualization code.
 
