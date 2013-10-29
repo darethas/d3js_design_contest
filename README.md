@@ -3,10 +3,15 @@ d3js_design_contest
 
 4122 Assignment - D3 Design Contest
 
+## Authors:
+Grace Christenbery and Dimitrios Arethas
+
 ## Pre-reqs:
 
 *  [node](http://nodejs.org/dist/v0.10.20/node-v0.10.20.tar.gz)
+
 OR
+
 * Python
 
 ## Instructons
@@ -31,12 +36,10 @@ OR
 ### notes:
 
 CSV files are in data/, to see it in the browser, for example
-go to localhost:3000/data/a1-cars.csv
+go to localhost:3000/Visualization/data/a1-cereals.csv
 
-Open index.html to view our work
+Open index.html to view our hard work!
 
 ### todo:
 
-* Make multiple, small graphs (working on it - Grace)
-* Make a Parallel Coordinates Visualization
-* Reach Goal: Leap Interaction
+* Project complete! View coffee/vis.coffee for visualization code.
