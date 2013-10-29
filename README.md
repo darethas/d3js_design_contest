@@ -9,7 +9,9 @@ Grace Christenbery and Dimitrios Arethas
 ## Pre-reqs:
 
 *  [node](http://nodejs.org/dist/v0.10.20/node-v0.10.20.tar.gz)
+
 OR
+
 * Python
 
 ## Instructons
@@ -34,9 +36,9 @@ OR
 ### notes:
 
 CSV files are in data/, to see it in the browser, for example
-go to localhost:3000/data/a1-cars.csv
+go to localhost:3000/Visualization/data/a1-cereals.csv
 
-Open index.html to view our work
+Open index.html to view our hard work!
 
 ### todo:
 
