@@ -101,6 +101,7 @@ class ParallelCoords
         d3.select(i).style("stroke", "black")
         d3.select(i).style("stroke-width", 7)
     d3.select(element).style("stroke-width", 10)
+    .style("stroke-opacity", 1)
     this.show_details(data, i, element)
 
   unselect: (data, i, element) =>
@@ -112,6 +113,7 @@ class ParallelCoords
         d3.select(i).style("stroke", null)
         d3.select(i).style("stroke-width", 2)
     d3.select(element).style("stroke-width", 2)
+    .style("stroke-opacity", 0.2)
     this.hide_details(data, i, element)
 
   create_vis: () =>
@@ -134,6 +136,7 @@ class ParallelCoords
       .attr("class", "node")
       .attr("name", (d) -> d.name)
       .style("stroke-width", 2)
+      .style("stroke-opacity", 0.2)
       .style("stroke", (d) => d.color)
       .on("mouseover", (d,i) -> that.select(d,i,this))
       .on("mouseout", (d,i) -> that.unselect(d,i,this))
@@ -426,6 +429,7 @@ class BubbleChart
     for i in window.lines[0]
       if i.__data__.name == id
         d3.select(i).style("stroke-width", 10)
+        .style("stroke-opacity", 1)
 
     content = "<span class=\"name\">Cereal:</span><span class=\"value\"> #{data.name}</span><br/>"
     content +="<span class=\"name\">Calories:</span><span class=\"value\"> #{addCommas(data.value)}</span><br/>"
@@ -453,7 +457,7 @@ class BubbleChart
     id = d[0].name
     for i in window.lines[0]
       if i.__data__.name == id
-        d3.select(i).style("stroke-width", 2)
+        d3.select(i).style("stroke-width", 2).style("stroke-opacity", 0.2)
     d3.selectAll("path.node").data(d[0]).style("stroke-width", 2)
     window.tooltip.hideTooltip()
 
