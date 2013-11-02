@@ -4,8 +4,6 @@ class ParallelCoords
     @data = data
     @parWidth = 1000
     @parHeight = 300
-    @width = 300
-    @height = 300
     @nodes = []
     @lines = []
     @columns = 10
@@ -29,7 +27,6 @@ class ParallelCoords
       .charge(-120)
       .linkDistance(30)
       .friction(0.8)
-      .size([@width, @height])
     @line = d3.svg.line().x((d) -> d.x).y((d) -> d.y)
     max_amount = d3.max(@data, (d) -> parseInt(d.Calories))
     @radius_scale = d3.scale.pow().exponent(4).domain([0, max_amount]).range([10, 85])
@@ -101,6 +98,7 @@ class ParallelCoords
         d3.select(i).style("stroke", "black")
         d3.select(i).style("stroke-width", 7)
     d3.select(element).style("stroke-width", 10)
+    .style("stroke-opacity", 1)
     this.show_details(data, i, element)
 
   unselect: (data, i, element) =>
@@ -112,6 +110,7 @@ class ParallelCoords
         d3.select(i).style("stroke", null)
         d3.select(i).style("stroke-width", 2)
     d3.select(element).style("stroke-width", 2)
+    .style("stroke-opacity", 0.2)
     this.hide_details(data, i, element)
 
   create_vis: () =>
@@ -126,7 +125,7 @@ class ParallelCoords
 
     #Used for mouse callbacks
     that = this
-
+    
     @lines = @parallel.selectAll("path.node")
       .data(@nodes, (d) -> d.name)
       .attr("id", (d) -> '#' + String(d.name))
@@ -134,6 +133,7 @@ class ParallelCoords
       .attr("class", "node")
       .attr("name", (d) -> d.name)
       .style("stroke-width", 2)
+      .style("stroke-opacity", 0.2)
       .style("stroke", (d) => d.color)
       .on("mouseover", (d,i) -> that.select(d,i,this))
       .on("mouseout", (d,i) -> that.unselect(d,i,this))
@@ -190,7 +190,7 @@ class BubbleChart
     @circles = null
     @circleSelected = null
 
-    #C olorbrewer set of 7 colors (not color-blind safe)
+    # Colorbrewer set of 7 colors (not color-blind safe)
     @fill_color = d3.scale.ordinal()
       .domain(["A", "G","N", "P", "K", "Q", "R"])
       .range(colorbrewer.Paired[7]);
@@ -207,14 +207,15 @@ class BubbleChart
     @radius_sugar_scale = d3.scale.pow().exponent(2).domain([0, max_sugar]).range([10, 65])
     @fill_color_sugars = d3.scale.linear()
       .domain([0, max_sugar])
-      .range(["hsl(160, 150%, 100%)", "hsl(146, 90%, 39%)"])
+      .range(["hsl(120, 100%, 88%)", "hsl(122, 41%, 40%)" ])
+      # .range(["hsl(146, 150%, 100%)", "hsl(150, 80%, 20%)"])
     @fill_color_sugars.interpolate(d3.interpolateHsl)
 
     max_protein = d3.max(@data, (d) -> parseInt(d.Protein))
     @radius_protein_scale = d3.scale.pow().exponent(2).domain([0, max_protein]).range([10, 65])
     @fill_color_protein = d3.scale.linear()
       .domain([0, max_protein])
-      .range(["hsl(350, 150%, 100%)", "hsl(358, 100%, 51%)"])
+      .range(["hsl(350, 150%, 100%)", "hsl(358, 78%, 47%)"])
     @fill_color_protein.interpolate(d3.interpolateHsl)
     @previousStrokeColor = null
     
@@ -426,6 +427,7 @@ class BubbleChart
     for i in window.lines[0]
       if i.__data__.name == id
         d3.select(i).style("stroke-width", 10)
+        .style("stroke-opacity", 1)
 
     content = "<span class=\"name\">Cereal:</span><span class=\"value\"> #{data.name}</span><br/>"
     content +="<span class=\"name\">Calories:</span><span class=\"value\"> #{addCommas(data.value)}</span><br/>"
@@ -453,7 +455,7 @@ class BubbleChart
     id = d[0].name
     for i in window.lines[0]
       if i.__data__.name == id
-        d3.select(i).style("stroke-width", 2)
+        d3.select(i).style("stroke-width", 2).style("stroke-opacity", 0.2)
     d3.selectAll("path.node").data(d[0]).style("stroke-width", 2)
     window.tooltip.hideTooltip()
 
