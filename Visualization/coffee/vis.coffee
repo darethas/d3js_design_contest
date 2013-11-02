@@ -4,8 +4,6 @@ class ParallelCoords
     @data = data
     @parWidth = 1000
     @parHeight = 300
-    @width = 300
-    @height = 300
     @nodes = []
     @lines = []
     @columns = 10
@@ -29,7 +27,6 @@ class ParallelCoords
       .charge(-120)
       .linkDistance(30)
       .friction(0.8)
-      .size([@width, @height])
     @line = d3.svg.line().x((d) -> d.x).y((d) -> d.y)
     max_amount = d3.max(@data, (d) -> parseInt(d.Calories))
     @radius_scale = d3.scale.pow().exponent(4).domain([0, max_amount]).range([10, 85])
@@ -128,7 +125,7 @@ class ParallelCoords
 
     #Used for mouse callbacks
     that = this
-
+    
     @lines = @parallel.selectAll("path.node")
       .data(@nodes, (d) -> d.name)
       .attr("id", (d) -> '#' + String(d.name))
@@ -193,7 +190,7 @@ class BubbleChart
     @circles = null
     @circleSelected = null
 
-    #C olorbrewer set of 7 colors (not color-blind safe)
+    # Colorbrewer set of 7 colors (not color-blind safe)
     @fill_color = d3.scale.ordinal()
       .domain(["A", "G","N", "P", "K", "Q", "R"])
       .range(colorbrewer.Paired[7]);
@@ -210,14 +207,15 @@ class BubbleChart
     @radius_sugar_scale = d3.scale.pow().exponent(2).domain([0, max_sugar]).range([10, 65])
     @fill_color_sugars = d3.scale.linear()
       .domain([0, max_sugar])
-      .range(["hsl(160, 150%, 100%)", "hsl(146, 90%, 39%)"])
+      .range(["hsl(120, 100%, 88%)", "hsl(122, 41%, 40%)" ])
+      # .range(["hsl(146, 150%, 100%)", "hsl(150, 80%, 20%)"])
     @fill_color_sugars.interpolate(d3.interpolateHsl)
 
     max_protein = d3.max(@data, (d) -> parseInt(d.Protein))
     @radius_protein_scale = d3.scale.pow().exponent(2).domain([0, max_protein]).range([10, 65])
     @fill_color_protein = d3.scale.linear()
       .domain([0, max_protein])
-      .range(["hsl(350, 150%, 100%)", "hsl(358, 100%, 51%)"])
+      .range(["hsl(350, 150%, 100%)", "hsl(358, 78%, 47%)"])
     @fill_color_protein.interpolate(d3.interpolateHsl)
     @previousStrokeColor = null
     
